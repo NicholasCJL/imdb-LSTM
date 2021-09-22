@@ -22,10 +22,10 @@ vocab_size = dataset.get_vocab_length()
 model = rnn_model.get_model(vocab_size, EMBED_SIZE, INPUT_SIZE, HIDDEN_SIZE)
 
 # checkpoint location
-filepath = "model/{model_name}/weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
+filepath = f"model/{model_name}/weights-improvement-{{epoch:02d}}-{{loss:.4f}}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=False, mode='min')
 time_history = rnn_model.TimeHistory()
-csv_logger = CSVLogger("model/{model_name}/training.csv")
+csv_logger = CSVLogger(f"model/{model_name}/training.csv")
 callbacks_list = [checkpoint, time_history, csv_logger]
 
 # fitting
