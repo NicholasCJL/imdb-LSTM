@@ -11,6 +11,7 @@ def get_model(vocab_size, embed_size, input_length, hidden_size, dropout=0.0, re
     model = Sequential()
     model.add(Embedding(vocab_size, embed_size, input_length=input_length))
     model.add(LSTM(hidden_size, dropout=dropout, recurrent_dropout=recurrent_dropout))
+    model.add(Dense(64, activation='sigmoid'))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
