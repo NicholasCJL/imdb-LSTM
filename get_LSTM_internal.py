@@ -2,9 +2,6 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 from tensorflow.keras import models, Model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-import string
-import data_processing as dp
 import numpy as np
 
 class LSTM_layer():
@@ -134,27 +131,5 @@ class LSTM_layer():
     # state updates end
 
 
-model = models.load_model('model/bayesian/weights-improvement-003-0.4138-0.8147.hdf5')
-dataset = dp.DataSet(4000, maxlen=80)
-x, _ = dataset.get_data()
-x, _ = x
-i2w = dataset.i2w_vocab
-print(len(sorted([id for id, _ in i2w.items()])))
-
-# isolating embedding layer, input sequence and obtain word embeddings (LSTM input) for manual processing
-embed_layer = Model(inputs=model.input, outputs=model.layers[0].output)
-
-test = np.zeros((1, 80))
-test_in = embed_layer.predict(test)
-print(test_in.shape)
-print(test_in)
-
-lstm = LSTM_layer(model.layers[1].get_weights())
-print(lstm.W_i.shape)
-print(lstm.W_i[:2, :].shape)
-print(lstm.W_i[:2, :])
-print(lstm.W_i.dot(test_in[0, 0, :]))
-print(lstm.W_i.dot(test_in[0, 0, :]).shape)
-print(lstm.get_ft(test_in[0, 0, :]))
 
 
