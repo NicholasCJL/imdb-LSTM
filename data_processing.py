@@ -4,10 +4,18 @@ import math
 import numpy as np
 
 class DataSet():
-    def __init__(self, num_words=None, seed=113, maxlen=100, train_portion=0.5):
+    def __init__(self, num_words=None, seed=113, maxlen=100, train_portion=0.5, long_first=False):
         # retrieve IMDb data, x is a sequence containing movie review,
         # y is a label indicating if it is positive or negative sentiment
         (self.x_train, self.y_train), (self.x_test, self.y_test) = imdb.load_data(num_words=num_words, seed=seed)
+
+
+        if long_first:
+            self.y_train = [y for _, y in sorted(zip(self.x_train, self.y_train), key=lambda s: len(s[0]), reverse=True)]
+            self.x_train = sorted(self.x_train, key=len, reverse=True)
+
+            self.y_test = [y for _, y in sorted(zip(self.x_test, self.y_test), key=lambda s: len(s[0]), reverse=True)]
+            self.x_test = sorted(self.x_test, key=len, reverse=True)
 
         # padding sequences to all be of the same length
         self.x_train = pad_sequences(self.x_train, maxlen=maxlen, padding='post', truncating='post')
@@ -17,10 +25,10 @@ class DataSet():
 
         self.word_index = imdb.get_word_index()
         self.word_to_index = {word:id + 3 for word, id in self.word_index.items()}
-        self.word_to_index["[PAD]"] = 0
-        self.word_to_index["[START]"] = 1
-        self.word_to_index["[UNK]"] = 2
-        self.word_to_index["[UNUSED]"] = 3
+        self.word_to_index["[pad]"] = 0
+        self.word_to_index["[start]"] = 1
+        self.word_to_index["[unk]"] = 2
+        self.word_to_index["[unused]"] = 3
         self.index_to_word = {i:word for (word, i) in self.word_to_index.items()}
         self.form_vocab()
 
