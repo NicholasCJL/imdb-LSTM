@@ -5,12 +5,12 @@ from tensorflow.keras import models, Model
 import numpy as np
 
 class LSTM_layer():
-    @classmethod
-    def sigmoid(cls, x):
+    @staticmethod
+    def sigmoid(x):
         return 1 / (1 + np.exp(-x))
 
-    @classmethod
-    def tanh(cls, x): # for consistency
+    @staticmethod
+    def tanh(x): # for consistency
         return np.tanh(x)
 
     def __init__(self, weights):
