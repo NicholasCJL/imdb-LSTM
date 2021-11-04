@@ -17,6 +17,10 @@ class DataSet():
             self.y_test = [y for _, y in sorted(zip(self.x_test, self.y_test), key=lambda s: len(s[0]), reverse=True)]
             self.x_test = sorted(self.x_test, key=len, reverse=True)
 
+        self.total_length = [len(x) for x in self.x_train]
+        temp = [len(x) for x in self.x_test]
+        self.total_length.extend(temp)
+
         # padding sequences to all be of the same length
         self.x_train = pad_sequences(self.x_train, maxlen=maxlen, padding='post', truncating='post')
         self.x_test = pad_sequences(self.x_test, maxlen=maxlen, padding='post', truncating='post')
@@ -53,7 +57,7 @@ class DataSet():
         self.w2i_vocab = w2i_vocab
 
     def get_data(self):
-        return (self.x_train, self.y_train), (self.x_test, self.y_test)
+        return (self.x_train, self.y_train), (self.x_test, self.y_test), (self.train_length, self.test_length)
 
     def get_vocab_length(self):
         return len(self.i2w_vocab)
@@ -62,6 +66,10 @@ class DataSet():
     def split_data(self, train_portion):
         x = np.concatenate((self.x_train, self.x_test), axis=0)
         y = np.concatenate((self.y_train, self.y_test), axis=0)
-        self.x_train, self.x_test = x[:math.floor(train_portion * len(x))], x[math.floor(train_portion * len(x)):]
-        self.y_train, self.y_test = y[:math.floor(train_portion * len(y))], y[math.floor(train_portion * len(y)):]
+        self.train_length, self.test_length = self.total_length[:math.floor(train_portion * len(x))], \
+                                              self.total_length[math.floor(train_portion * len(x)):]
+        self.x_train, self.x_test = x[:math.floor(train_portion * len(x))], \
+                                    x[math.floor(train_portion * len(x)):]
+        self.y_train, self.y_test = y[:math.floor(train_portion * len(y))], \
+                                    y[math.floor(train_portion * len(y)):]
         return None
