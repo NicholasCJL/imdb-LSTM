@@ -4,6 +4,10 @@ import pickle
 import numpy as np
 from tensorflow.keras import models, Model
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib import cm
+from matplotlib.animation import FuncAnimation
+from matplotlib.colors import ListedColormap
 
 def get_mean_vector(h_set):
     """
@@ -65,7 +69,39 @@ def get_poincare_mapping(lstm, start, num_steps, intermediate_inputs=None):
     return h_t, h_t_1
 
 def main():
+    def animate(frame):
+        """
+        plots <frame> in animation
+        :param frame: frame number
+        :return: None
+        """
+        ax.clear()
+        colour = np.asarray([i for i in range(ppf*frame)])
+        size = [0.9] * (ppf*frame-1) + [9]
+        to_trace = trace_length if start_point + ppf*frame >= trace_length else start_point + ppf*frame
+        ax.plot(h_t[start_point+ppf*frame-to_trace:start_point+ppf*frame],
+                h_t_1[start_point+ppf*frame-to_trace:start_point+ppf*frame],
+                   markersize=0.1, linewidth=1.1, color='k', zorder=1)
+        ax.scatter(h_t[start_point:start_point+ppf*frame], h_t_1[start_point:start_point+ppf*frame],
+                   s=size, c=colour, cmap=newcmp,zorder=2)
+        plt.title(str(ppf*frame))
+        return
+
+    # plotting setup
+    mpl.rcParams['animation.ffmpeg_path'] = r'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe'
+    viridis = cm.get_cmap('viridis', 256)
+    newcolors = viridis(np.linspace(0, 1, 256))
+    pink = np.array([256 / 256, 25 / 256, 148 / 256, 1])
+    newcolors[255, :] = pink
+    newcmp = ListedColormap(newcolors)
+
+    # numbers setup
+    trace_length = 25 # number of newest lines to draw
+    ppf = 1 # datapoints per frame
+    fps = 25
     num_timesteps = 500
+    len_sequence = 20000
+    start_point = 10000
     num_cells = 60
     data_index = 3 # which review to use
 
@@ -82,16 +118,19 @@ def main():
     length, _ = length
     x, y = x
     for i in range(1):
-        x_in = np.zeros((1, num_timesteps))
-        # x_in = x[i].reshape((1, num_timesteps))
+        # x_in = np.zeros((1, num_timesteps))
+        x_in = x[i].reshape((1, num_timesteps))
         print(length[i])
 
         lstm_in = embed_layer.predict(x_in)
         lstm = LSTM_layer(model.layers[1].get_weights())
         start = lstm_in[0][0]
-        intermediate_steps = lstm_in[0][1:]
+        # intermediate_steps = np.zeros((len_sequence-1, 32))
+        print(np.tile(lstm_in[0], (int((len_sequence-num_timesteps) / num_timesteps), 1)).shape)
+        intermediate_steps = np.concatenate((lstm_in[0][1:], np.tile(lstm_in[0], (int((len_sequence-num_timesteps) / num_timesteps), 1))))
+        print(intermediate_steps.shape)
 
-        h_t, h_t_1 = get_poincare_mapping(lstm, start, 500, intermediate_steps)
+        h_t, h_t_1 = get_poincare_mapping(lstm, start, len_sequence, intermediate_steps)
         hbar = get_mean_vector(h_t)
         for j in range(len(h_t)):
             h_t[j] = project(get_norm(h_t[j]), hbar)
@@ -102,11 +141,17 @@ def main():
         print(len(h_t_1))
 
 
-        # colour = np.asarray([i for i in range(499)])
-        im = ax.scatter(h_t[100:], h_t_1[100:], s=0.5, cmap='viridis')
+        colour = np.asarray([i for i in range(len_sequence-start_point-1)])
+        # colour = np.asarray([i for i in range(100)])
+        # plt.plot(h_t, h_t_1, markersize=0.5)
+        im = ax.scatter(h_t[start_point:], h_t_1[start_point:], s=1, c=colour, cmap='viridis')
         # fig.colorbar(im, orientation='vertical')
-        #plt.xlim([2.6, 3])
-        #plt.ylim([2.6, 3])
+        #plt.xlim([2.454, 2.456])
+        #plt.ylim([2.454, 2.456])
+        # print(h_t_1[1800:])
+        # animation = FuncAnimation(fig, animate, frames=(len_sequence-start_point-1)//ppf,
+        #                          interval=1000/fps, repeat=False, save_count=(len_sequence-start_point-1)//ppf)
+        # animation.save('test550.mp4')
     plt.show()
 
 if __name__ == "__main__":
