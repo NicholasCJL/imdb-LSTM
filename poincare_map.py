@@ -123,65 +123,79 @@ def main():
     ppf = 1 # datapoints per frame
     fps = 25
     num_timesteps = 500
-    len_sequence = 20000
-    start_point = 19000
-    end_point = 20000
+    len_sequence = 100000
+    start_point = 98000
+    end_point = 100000
     num_cells = 60
     data_index = 3 # which review to use
+    start_count = 95000 # number to start counting points from
+    precision = 12 # precision for data point counting
 
     path = "" # fill in path here
     with open("dataset_4000_500_07.pkl", 'rb') as file:
         dataset = pickle.load(file)
 
-    model_opt = models.load_model('model/hyperband500_small_4/weights-improvement-009-0.2788-0.8907.hdf5')
-    model_late = models.load_model('model/hyperband500_small_4/weights-improvement-035-0.5377-0.8755.hdf5')
+    model_opt = models.load_model('model/hyperband500_small_NoL2_1000_5-4/weights-improvement-095-0.2917-0.8842.hdf5')
+    model_late = models.load_model('model/hyperband500_small_NoL2_1000_5-4/weights-improvement-883-2.5239-0.8641.hdf5')
     embed_layer_opt = Model(inputs=model_opt.input, outputs=model_opt.layers[0].output)
     embed_layer_late = Model(inputs=model_late.input, outputs=model_late.layers[0].output)
 
     # pick one review
-    x, _, length = dataset.get_data()
-    length, _ = length
+    _, x, length = dataset.get_data()
+    _, length = length
     x, y = x
-    for i in range(1):
+    for i in range(0, 5):
         # x_in = np.zeros((1, num_timesteps))
         x_in = x[i].reshape((1, num_timesteps))
-        print(length[i])
-
+        # print(length[i])
+        # if length[i] < 350:
+        #     continue
         lstm_in_opt = embed_layer_opt.predict(x_in)
         lstm_opt = LSTM_layer(model_opt.layers[1].get_weights())
         start = lstm_in_opt[0][0]
         # intermediate_steps = np.zeros((len_sequence-1, 32))
-        print(np.tile(lstm_in_opt[0], (int((len_sequence-num_timesteps) / num_timesteps), 1)).shape)
+        #print(np.tile(lstm_in_opt[0], (int((len_sequence-num_timesteps) / num_timesteps), 1)).shape)
         intermediate_steps = np.concatenate((lstm_in_opt[0][1:], np.tile(lstm_in_opt[0], (int((len_sequence-num_timesteps) / num_timesteps), 1))))
-        print(intermediate_steps.shape)
+        #print(intermediate_steps.shape)
 
         h_t_opt, h_t_1_opt = get_poincare_mapping(lstm_opt, start, len_sequence, intermediate_steps)
         hbar_opt = get_mean_vector(h_t_opt)
-        for j in range(len(h_t_opt)):
+        opt_set = set()
+        for j in range(start_count, len(h_t_opt)):
             h_t_opt[j] = project(get_norm(h_t_opt[j]), hbar_opt)
             h_t_1_opt[j] = project(get_norm(h_t_1_opt[j]), hbar_opt)
+            opt_set.add((round(h_t_opt[j], precision), round(h_t_1_opt[j], precision)))
+            # opt_set.add((h_t_opt[j], h_t_1_opt[j]))
         # print(h_t[:5])
         # print(h_t_1[:5])
         # print(len(h_t))
-        print(len(h_t_1_opt))
+        #print(len(h_t_1_opt))
 
         lstm_in_late = embed_layer_late.predict(x_in)
         lstm_late = LSTM_layer(model_late.layers[1].get_weights())
         start = lstm_in_late[0][0]
         # intermediate_steps = np.zeros((len_sequence-1, 32))
-        print(np.tile(lstm_in_late[0], (int((len_sequence-num_timesteps) / num_timesteps), 1)).shape)
+        #print(np.tile(lstm_in_late[0], (int((len_sequence-num_timesteps) / num_timesteps), 1)).shape)
         intermediate_steps = np.concatenate((lstm_in_late[0][1:], np.tile(lstm_in_late[0], (int((len_sequence-num_timesteps) / num_timesteps), 1))))
-        print(intermediate_steps.shape)
+        #print(intermediate_steps.shape)
 
         h_t_late, h_t_1_late = get_poincare_mapping(lstm_late, start, len_sequence, intermediate_steps)
         hbar_late = get_mean_vector(h_t_late)
-        for j in range(len(h_t_late)):
+        late_set = set()
+        for j in range(start_count, len(h_t_late)):
             h_t_late[j] = project(get_norm(h_t_late[j]), hbar_late)
             h_t_1_late[j] = project(get_norm(h_t_1_late[j]), hbar_late)
+            late_set.add((round(h_t_late[j], precision), round(h_t_1_late[j], precision)))
+            # late_set.add((h_t_late[j], h_t_1_late[j]))
         # print(h_t[:5])
         # print(h_t_1[:5])
         # print(len(h_t))
-        print(len(h_t_1_late))
+        #print(len(h_t_1_late))
+
+        print(f"Review {i}: length {length[i]} \n\t\t  Total Entries: {len_sequence}"
+              f"\n\t\t  Last {len_sequence-start_count} points"
+              f"\n\t\t  Optimal epoch unique points: {len(opt_set)}"
+              f"\n\t\t  Late epoch unique points: {len(late_set)}")
 
 
         # colour = np.asarray([i for i in range(len_sequence-start_point-1)])
@@ -192,10 +206,10 @@ def main():
         #plt.xlim([2.454, 2.456])
         #plt.ylim([2.454, 2.456])
         # print(h_t_1[1800:])
-        animation = FuncAnimation(fig, animate, frames=(end_point-start_point)//ppf,
-                                 interval=1000/fps, repeat=False, save_count=(len_sequence-start_point-1)//ppf)
-        animation.save(f'D:/Thesis/IMDb LSTM/Results/timesteps500_embed32_hidden60_vocab4000_4/009-035_{i}_{length[i]}_{start_point}-{end_point}.mp4')
-    plt.show()
+        # animation = FuncAnimation(fig, animate, frames=(end_point-start_point)//ppf,
+        #                         interval=1000/fps, repeat=False, save_count=(len_sequence-start_point-1)//ppf)
+        # animation.save(f'D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/test_095-883_{i}_{length[i]}_{start_point}-{end_point}.mp4')
+    # plt.show()
 
 if __name__ == "__main__":
     main()
