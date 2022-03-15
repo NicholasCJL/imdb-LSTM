@@ -16,6 +16,7 @@ class RegressionData():
         self.r = []
         self.stderr = []
         self.iscorrect = []
+        self.input_length = []
 
     def add_slope(self, slope):
         self.slope.append(slope)
@@ -32,17 +33,25 @@ class RegressionData():
     def add_result(self, correct):
         self.iscorrect.append(correct)
 
+    def add_length(self, length):
+        self.input_length.append(length)
+
 def main():
     power = True # get power spectrum
-    num_timesteps = 150
-    num_cells = 45
+    num_timesteps = 500
+    num_cells = 60
 
-    path = "Results/timesteps150_embed32_hidden45_vocab4000/norm_activations_by_type_reg_stats"
+    path = "Results/timesteps500_embed32_hidden60_vocab4000_5/norm_activation_by_type_length"
 
-    model = models.load_model('model/hyperband150/weights-improvement-003-0.3214-0.8597.hdf5')
-    dataset = dp.DataSet(4000, maxlen=num_timesteps, train_portion=0.7, long_first=True)
-    x, _ = dataset.get_data()
-    x, y = x
+    model = models.load_model('model/hyperband500_small_5/weights-improvement-028-0.3471-0.8830.hdf5')
+    dataset = dp.DataSet(4000, maxlen=num_timesteps, train_portion=0.7)
+    # x, _, length = dataset.get_data()
+    # length, _ = length
+    # x, y = x
+    _, y, length = dataset.get_data()
+    _, length = length
+    x, y = y
+
     i2w = dataset.i2w_vocab
 
     # isolating embedding layer, input sequence and obtain word embeddings (LSTM input) for manual processing
@@ -68,6 +77,7 @@ def main():
         # os.mkdir(f'{path}/{index}')
 
         x_in = x[index].reshape((1, num_timesteps))
+        length_in = length[index]
         lstm_in = embed_layer.predict(x_in)
 
         # check if model is correct for this datapoint
@@ -79,6 +89,8 @@ def main():
 
         for k in range(num_timesteps): # number of timesteps
             activations_list.append(lstm.step(lstm_in[0][k]))
+        # reset LSTM
+        lstm.reset()
 
         for j in range(7): # number of activation types
             # get all activation values (for activation j) at every timestep, (timestep, array of activations for each neuron)
@@ -91,19 +103,31 @@ def main():
                 cell_level_activations = (cell_level_activations + 1) / 2 # compress -1 to 1 -> 0 to 1
 
             cell_level_activations = cell_level_activations / num_cells # normalise
-            cell_level_activations = np.asarray(sum(cell_level_activations)) # sum
 
-            # Fourier transform
-            cell_level_k = np.abs(rfft(cell_level_activations)) # activations in frequency domain
-            if power:
-                cell_level_k = cell_level_k ** 2 # power spectrum
-            frequencies = rfftfreq(cell_level_activations.size, d=1)
-            #plt.plot(frequencies[1:], abs(cell_level_k[1:]))
-            #plt.show()
+            # Fourier transform of each cell's activations
+            frequencies = rfftfreq(cell_level_activations[0].size, d=1)
+            total_spectrum = np.asarray([0] * frequencies.size)
+            for cell in cell_level_activations:
+                cell_level_k = np.abs(rfft(cell))
+                if power:
+                    cell_level_k = cell_level_k ** 2
+                total_spectrum = total_spectrum + cell_level_k
+
+            cell_level_k = total_spectrum
+
+            # cell_level_activations = np.asarray(sum(cell_level_activations)) # sum
+            #
+            # # Fourier transform
+            # cell_level_k = np.abs(rfft(cell_level_activations)) # activations in frequency domain
+            # if power:
+            #     cell_level_k = cell_level_k ** 2 # power spectrum
+            # frequencies = rfftfreq(cell_level_activations.size, d=1)
+            # #plt.plot(frequencies[1:], abs(cell_level_k[1:]))
+            # #plt.show()
 
             # convert to log-log
-            log_cell_level_k = np.log10(cell_level_k[1:] + 0.0000001)
-            log_frequencies = np.log10(frequencies[1:] + 0.0000001)
+            log_cell_level_k = np.log10(cell_level_k[1:] + 0.00000001)
+            log_frequencies = np.log10(frequencies[1:] + 0.00000001)
             # plt.plot(log_frequencies, log_cell_level_k, 'r')
 
             # linear regression
@@ -117,8 +141,10 @@ def main():
             reg_data[j].add_r(r_value)
             reg_data[j].add_stderr(stderr)
             reg_data[j].add_result(match)
+            reg_data[j].add_length(length_in)
 
-    with open(f'{path}/power_fft_reg_data_all.pkl', 'wb') as file:
+
+    with open(f'{path}/power_fft_reg_data_test_028.pkl', 'wb') as file:
         pickle.dump(reg_data, file)
 
 if __name__ == "__main__":
