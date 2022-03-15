@@ -103,8 +103,8 @@ def main():
     _, x, length = dataset.get_data()
     _, length = length
     x, y = x
-    start_rev, end_rev = 4500, 4599
-    while start_rev < 7500:
+    start_rev, end_rev = 7600, 7699
+    while start_rev < 20000:
         data = []
         for i in range(start_rev, end_rev+1):
             opt_data = ReviewUnique(95, i, length[i], num_count, interval_tuple)
@@ -137,6 +137,7 @@ def main():
                     h_t_1_opt[j] = project(get_norm(h_t_1_opt[j]), hbar_opt)
                     prev_h = h_t_1_opt[j]
                     opt_set.add((h_t_opt[j], h_t_1_opt[j]))
+                opt_data.add_data(interval, len(opt_set))
             print("project_opt")
 
             # repeat above for late network
