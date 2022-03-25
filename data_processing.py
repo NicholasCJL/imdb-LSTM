@@ -9,7 +9,6 @@ class DataSet():
         # y is a label indicating if it is positive or negative sentiment
         (self.x_train, self.y_train), (self.x_test, self.y_test) = imdb.load_data(num_words=num_words, seed=seed)
 
-
         if long_first:
             self.y_train = [y for _, y in sorted(zip(self.x_train, self.y_train), key=lambda s: len(s[0]), reverse=True)]
             self.x_train = sorted(self.x_train, key=len, reverse=True)
