@@ -70,10 +70,10 @@ def main():
     # numbers setup
     num_timesteps = 500
     len_sequence = 120000
-    num_count = 9000 # last num_count points will be counted
-    interval_tuple = (10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 119999)
+    num_count = 24900 # last num_count points will be counted
+    interval_tuple = tuple(24999 + i * 1000 for i in range(96)) # 24999 to 119999 at 1000 point intervals
 
-    path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points" # fill in path here
+    path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900" # fill in path here
     with open("dataset_4000_500_07.pkl", 'rb') as file:
         dataset = pickle.load(file)
 
@@ -88,7 +88,7 @@ def main():
     _, x, length = dataset.get_data()
     _, length = length
     x, y = x
-    start_rev, end_rev = 0, 49
+    start_rev, end_rev = 0, 99
     while start_rev < 15000:
         data = []
         for i in range(start_rev, end_rev+1):
@@ -113,14 +113,18 @@ def main():
             for interval in interval_tuple:
                 opt_set = set()
                 # optimisation preprocessing
-                h_t_opt[interval-num_count] = project(get_norm(h_t_opt[interval-num_count]),
+                # check if element has already been converted to a point, only convert if still array
+                if hasattr(h_t_opt[interval-num_count], "__len__"): # numpy array
+                    h_t_opt[interval-num_count] = project(get_norm(h_t_opt[interval-num_count]),
                                                       hbar_opt)
-                h_t_1_opt[interval-num_count] = project(get_norm(h_t_1_opt[interval-num_count]),
+                if hasattr(h_t_1_opt[interval-num_count], "__len__"):
+                    h_t_1_opt[interval-num_count] = project(get_norm(h_t_1_opt[interval-num_count]),
                                        hbar_opt)
                 prev_h = h_t_1_opt[interval-num_count]
                 for j in range(interval-num_count+1, interval):
                     h_t_opt[j] = prev_h
-                    h_t_1_opt[j] = project(get_norm(h_t_1_opt[j]), hbar_opt)
+                    if hasattr(h_t_1_opt[j], "__len__"):
+                        h_t_1_opt[j] = project(get_norm(h_t_1_opt[j]), hbar_opt)
                     prev_h = h_t_1_opt[j]
                     opt_set.add((h_t_opt[j], h_t_1_opt[j]))
                 opt_data.add_data(interval, len(opt_set))
@@ -137,15 +141,19 @@ def main():
             for interval in interval_tuple:
                 late_set = set()
                 # optimisation preprocessing
-                h_t_late[interval-num_count] = project(get_norm(h_t_late[interval-num_count]),
+                # check if element has already been converted to a point, only convert if still array
+                if hasattr(h_t_late[interval-num_count], "__len__"):  # numpy array
+                    h_t_late[interval-num_count] = project(get_norm(h_t_late[interval-num_count]),
                                                         hbar_late)
-                h_t_1_late[interval-num_count] = project(get_norm(h_t_1_late[interval-num_count]),
+                if hasattr(h_t_1_late[interval-num_count], "__len__"):
+                    h_t_1_late[interval-num_count] = project(get_norm(h_t_1_late[interval-num_count]),
                                                           hbar_late)
                 prev_h = h_t_1_late[interval-num_count]
 
                 for j in range(interval-num_count+1, interval):
                     h_t_late[j] = prev_h
-                    h_t_1_late[j] = project(get_norm(h_t_1_late[j]), hbar_late)
+                    if hasattr(h_t_1_late[j], "__len__"):
+                        h_t_1_late[j] = project(get_norm(h_t_1_late[j]), hbar_late)
                     prev_h = h_t_1_late[j]
                     late_set.add((h_t_late[j], h_t_1_late[j]))
                 late_data.add_data(interval, len(late_set))
