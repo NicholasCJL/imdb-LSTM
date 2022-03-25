@@ -135,6 +135,7 @@ class LSTM_layer():
         res[:] = 1 / (1 + np.exp(-sum_f))
 
     # activations start
+    # tanh activations don't see an improvement from vectorization (probably because tanh is already vectorized)
     def get_ft(self, x_t):
         # sigmoid(W_f . x_t + U_f . h_(t-1) + b_f) . is dot product
         # wfx = self.W_f.dot(x_t)
