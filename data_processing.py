@@ -5,6 +5,14 @@ import numpy as np
 
 class DataSet():
     def __init__(self, num_words=None, seed=113, maxlen=100, train_portion=0.5, long_first=False):
+        """
+        :param num_words: Size of vocabulary, all words out-of-vocabulary will be marked as [unk]
+        :param seed: Seed for randomly shuffling dataset
+        :param maxlen: Maximum length of review, reviews longer than maxlen will be truncated, reviews shorter than
+        maxlen will be padded to maxlen
+        :param train_portion: Portion of dataset to allocate to training data, test data will be 1-train_portion
+        :param long_first: Sort reviews by length
+        """
         # retrieve IMDb data, x is a sequence containing movie review,
         # y is a label indicating if it is positive or negative sentiment
         (self.x_train, self.y_train), (self.x_test, self.y_test) = imdb.load_data(num_words=num_words, seed=seed)
