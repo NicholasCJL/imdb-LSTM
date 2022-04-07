@@ -8,11 +8,11 @@ from normalise_activations_individual import RegressionData
 
 min_length = 0
 max_length = 9999
-type = "trimmed_train"
+type = "test"
 
-path = "timesteps500_embed32_hidden60_vocab4000_4"
+path = "timesteps500_embed32_hidden60_vocab4000_6"
 
-with open(f"Results/{path}/norm_activation_by_type_length/trimmed_train/power_fft_reg_data_train_trimmed_009.pkl", 'rb') as file:
+with open(f"Results/{path}/norm_activation_by_type_length/power_fft_reg_data_test_011.pkl", 'rb') as file:
     reg_data = pickle.load(file)
 
 # os.mkdir(f'Results/{path}/norm_activation_by_type_length/{type}')
@@ -42,16 +42,19 @@ for data in reg_data:
 
     fig, ax = plt.subplots()
 
-    plt.axvline(mean, color='r', linestyle='-', linewidth=0.5)
-    plt.axvline(mean-stddev, color = 'r', linestyle = '-.', linewidth=0.5)
-    plt.axvline(mean+stddev, color = 'r', linestyle = '-.', linewidth=0.5)
-    plt.hist(x, bins=bins, color='b')
+    plt.axvline(mean, color='r', linestyle='-', linewidth=1.2)
+    plt.axvline(mean-stddev, color = 'r', linestyle = '-.', linewidth=1.2)
+    plt.axvline(mean+stddev, color = 'r', linestyle = '-.', linewidth=1.2)
+    plt.hist(x, bins=bins, color='b', density=True, histtype='stepfilled')
     plt.xlim([-2, 2])
-    plt.xlabel(r"$\alpha$")
-    plt.ylabel("Count")
-    plt.title(f'Spread of exponents of {data.type} across dataset')
+    plt.xlabel(r"$\beta$", fontsize=20)
+    plt.ylabel("Density", fontsize=20)
+    ax.tick_params(axis='both', labelsize=19)
+    # plt.title(f'Spread of exponents of {data.type} across dataset')
     plt.text(0.72, 0.9, f'Mean = {round(mean, 3)}\nMedian = {round(median, 3)}\nStddev = {round(stddev, 3)}',
-             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
+             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=19)
+    fig.set_size_inches(10, 8)
+    plt.tight_layout()
     fig.savefig(f"Results/{path}/norm_activation_by_type_length/{type}/{min_length}-{max_length}/{data.type}.png", dpi=fig.dpi)
 
     # correct data
@@ -66,16 +69,19 @@ for data in reg_data:
 
     fig, ax = plt.subplots()
 
-    plt.axvline(mean, color='r', linestyle='-', linewidth=0.5)
-    plt.axvline(mean-stddev, color = 'r', linestyle = '-.', linewidth=0.5)
-    plt.axvline(mean+stddev, color = 'r', linestyle = '-.', linewidth=0.5)
-    plt.hist(x_correct, bins=bins, color='g')
+    plt.axvline(mean, color='r', linestyle='-', linewidth=1.2)
+    plt.axvline(mean-stddev, color = 'r', linestyle = '-.', linewidth=1.2)
+    plt.axvline(mean+stddev, color = 'r', linestyle = '-.', linewidth=1.2)
+    plt.hist(x_correct, bins=bins, color='g', density=True, histtype='stepfilled')
     plt.xlim([-2, 2])
-    plt.xlabel(r"$\alpha$")
-    plt.ylabel("Count")
-    plt.title(f'Spread of gradients of {data.type} across dataset (correct predictions)')
+    plt.xlabel(r"$\beta$", fontsize=16)
+    plt.ylabel("Density", fontsize=16)
+    ax.tick_params(axis='both', labelsize=15)
+    # plt.title(f'Spread of gradients of {data.type} across dataset (correct predictions)')
     plt.text(0.72, 0.9, f'Mean = {round(mean, 3)}\nMedian = {round(median, 3)}\nStddev = {round(stddev, 3)}',
-             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
+             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=15)
+    fig.set_size_inches(10, 8)
+    plt.tight_layout()
     fig.savefig(f"Results/{path}/norm_activation_by_type_length/{type}/{min_length}-{max_length}/{data.type}_c.png", dpi=fig.dpi)
 
 
@@ -94,11 +100,14 @@ for data in reg_data:
     plt.axvline(mean, color='r', linestyle='-', linewidth=0.5)
     plt.axvline(mean - stddev, color='r', linestyle='-.', linewidth=0.5)
     plt.axvline(mean + stddev, color='r', linestyle='-.', linewidth=0.5)
-    plt.hist(x_wrong, bins=bins, color='orange')
+    plt.hist(x_wrong, bins=bins, color='orange', density=True, histtype='stepfilled')
     plt.xlim([-2, 2])
-    plt.xlabel(r"$\alpha$")
-    plt.ylabel("Count")
-    plt.title(f'Spread of gradients of {data.type} across dataset (wrong predictions)')
+    plt.xlabel(r"$\beta$", fontsize=16)
+    plt.ylabel("Density", fontsize=16)
+    ax.tick_params(axis='both', labelsize=15)
+    # plt.title(f'Spread of gradients of {data.type} across dataset (wrong predictions)')
     plt.text(0.72, 0.9, f'Mean = {round(mean, 3)}\nMedian = {round(median, 3)}\nStddev = {round(stddev, 3)}',
-             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
+             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=15)
+    fig.set_size_inches(10, 8)
+    plt.tight_layout()
     fig.savefig(f"Results/{path}/norm_activation_by_type_length/{type}/{min_length}-{max_length}/{data.type}_w.png", dpi=fig.dpi)
