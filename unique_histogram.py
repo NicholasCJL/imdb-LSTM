@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import pickle
 import numpy as np
 
-path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900_untrained"
+path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900_trained"
 all_points = []
-for i in range(0, 15000, 50):
-    with open(f"{path}/{i}_{i+49}_120000.pkl", 'rb') as file:
+for i in range(0, 15000, 100):
+    with open(f"{path}/{i}_{i+99}_120000.pkl", 'rb') as file:
         all_points.extend(pickle.load(file))
 
-opt_points = [points for points in all_points]
-# late_points = [points[1] for points in all_points]
+opt_points = [points[0] for points in all_points]
+late_points = [points[1] for points in all_points]
 
 intervals = opt_points[0].intervals
 
@@ -18,10 +18,10 @@ interval_nums = {interval: [] for interval in intervals}
 print(interval_nums)
 
 for i in range(15000):
-    if opt_points[i].rev_len >= 500:
-    # if True:
+    # if opt_points[i].rev_len >= 500:
+    if True:
         for interval in intervals:
-            interval_nums[interval].append(opt_points[i].get_data(interval))
+            interval_nums[interval].append(late_points[i].get_data(interval))
 
 for interval in reversed(intervals):
     interval_nums[interval] = np.asarray(interval_nums[interval])
@@ -30,7 +30,7 @@ for interval in reversed(intervals):
     print(q25, q75)
 
     bin_width = 2 * (q75 - q25) * len(interval_nums[interval]) ** (-1/3)
-    bin_width = bin_width if bin_width > 0 else 20
+    bin_width = bin_width if bin_width > 0 else 40
     print(len(interval_nums[interval]))
     print(max(interval_nums[interval]))
     print(min(interval_nums[interval]))
@@ -50,9 +50,9 @@ for interval in reversed(intervals):
     # log scale on y axis, do not plot 0 counts
     plt.yscale('log', nonposy='clip')
     # plt.title(f"Histogram at {interval if interval != intervals[-1] else interval + 1} timesteps (Late epoch)")
-    plt.xlabel("Number of unique points", fontsize=15)
-    plt.ylabel("log Count", fontsize=15)
-    ax.tick_params(axis='both', labelsize=14)
+    plt.xlabel("Number of unique points", fontsize=22)
+    plt.ylabel("log Count", fontsize=22)
+    ax.tick_params(axis='both', labelsize=21)
     fig.set_size_inches(10, 8)
     plt.tight_layout()
     plt.show()

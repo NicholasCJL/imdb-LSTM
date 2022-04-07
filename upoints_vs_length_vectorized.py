@@ -69,11 +69,11 @@ def get_poincare_mapping(lstm, start, num_steps, intermediate_inputs=None):
 def main():
     # numbers setup
     num_timesteps = 500
-    len_sequence = 120000
-    num_count = 24900 # last num_count points will be counted
-    interval_tuple = tuple(24999 + i * 1000 for i in range(96)) # 24999 to 119999 at 1000 point intervals
+    len_sequence = 110000
+    num_count = 9000 # last num_count points will be counted
+    interval_tuple = tuple(9999 + i * 20000 for i in range(5)) # 24999 to 119999 at 1000 point intervals
 
-    path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900" # fill in path here
+    path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_9000_shorttest" # fill in path here
     with open("dataset_4000_500_07.pkl", 'rb') as file:
         dataset = pickle.load(file)
 
@@ -88,11 +88,11 @@ def main():
     _, x, length = dataset.get_data()
     _, length = length
     x, y = x
-    start_rev, end_rev = 0, 99
+    start_rev, end_rev = 0, 49
     while start_rev < 15000:
         data = []
         for i in range(start_rev, end_rev+1):
-            opt_data = ReviewUnique(95, i, length[i], num_count, interval_tuple)
+            opt_data = ReviewUnique(1, i, length[i], num_count, interval_tuple)
             late_data = ReviewUnique(883, i, length[i], num_count, interval_tuple)
 
             # current review
@@ -162,7 +162,10 @@ def main():
                   f"\n\t\t  Last {num_count} points"
                   f"\n\t\t  Optimal epoch unique points: {opt_data.get_data(interval)}"
                   f"\n\t\t  Late epoch unique points: {late_data.get_data(interval)}")
-
+            data.append(opt_data)
+            print(f"Review {i}: length {length[i]} \n\t\t  Total Entries: {len_sequence}"
+                  f"\n\t\t  Last {num_count} points"
+                  f"\n\t\t  Optimal epoch unique points: {opt_data.get_data(interval)}")
             data.append((opt_data, late_data))
 
             # reset internal states of LSTM layers

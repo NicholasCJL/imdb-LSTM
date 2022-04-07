@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pickle
 import numpy as np
 
-path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900"
+path = "D:/Thesis/IMDb LSTM/Results/hyperband500_small_NoL2_1000_5-4/unique_points_24900_trained"
 all_points = []
 for i in range(0, 15000, 100):
     with open(f"{path}/{i}_{i+99}_120000.pkl", 'rb') as file:
@@ -40,14 +40,14 @@ for interval in intervals:
     c = cmap((interval-intervals[0]) / (intervals[-1] - intervals[0]))
     ax.bar(xs, hist, zs=interval, zdir='y', color=c, ec=c, alpha=0.8)
 
+
+ax.set_xlabel('Number of unique points', fontsize=16)
+ax.xaxis.labelpad = 12
+ax.set_ylabel('Timestep', fontsize=16)
+ax.yaxis.labelpad = 14
+ax.set_zlabel('log Count', fontsize=16)
+ax.zaxis.labelpad = 10
+ax.tick_params(axis='both', labelsize=15)
+fig.set_size_inches(11, 10)
 plt.tight_layout()
-fig.set_size_inches(11, 8)
-
-ax.set_xlabel('Number of unique points')
-ax.xaxis.labelpad = 8
-ax.set_ylabel('Timestep')
-ax.yaxis.labelpad = 10
-ax.set_zlabel('log Count')
-ax.zaxis.labelpad = 8
-
 plt.show()

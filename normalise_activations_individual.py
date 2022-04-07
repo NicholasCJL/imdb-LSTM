@@ -41,9 +41,10 @@ def main():
     num_timesteps = 500
     num_cells = 60
 
-    path = "Results/timesteps500_embed32_hidden60_vocab4000_5/norm_activation_by_type_length"
+    path = "Results/timesteps500_embed32_hidden60_vocab4000_6/norm_activation_by_type_length"
 
-    model = models.load_model('model/hyperband500_small_5/weights-improvement-028-0.3471-0.8830.hdf5')
+    model = models.load_model('model/hyperband500_small_6/weights-improvement-001-0.6936-0.5015.hdf5')
+    print("Model epoch: 001")
     dataset = dp.DataSet(4000, maxlen=num_timesteps, train_portion=0.7)
     # x, _, length = dataset.get_data()
     # length, _ = length
@@ -144,7 +145,7 @@ def main():
             reg_data[j].add_length(length_in)
 
 
-    with open(f'{path}/power_fft_reg_data_test_028.pkl', 'wb') as file:
+    with open(f'{path}/power_fft_reg_data_test_001.pkl', 'wb') as file:
         pickle.dump(reg_data, file)
 
 if __name__ == "__main__":
